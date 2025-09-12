@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mhj/react-test -f ./client/Dockerfile.dev ./client 
+
+script:
+  - docker run mhj/react-test npm test -- --coverage
+
+after-success:
+  docker build -t mhj/multi-client ./client
+  docker build -t mhj/multi-nginx ./nginx
+  docker build -t mhj/multi-server ./server
+  docker build -t mhj/multi-worker ./worker
+  #login to aliyun docker hub
+  echo "DOCKER_PASSWORD" | docker login -u "DOCKER_ID" crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com --password-stdin
+
+  #take those images and push them to docker hub
+
+  docker push mhj/multi-client
+  docker push mhj/multi-api
+  docker push mhj/multi-worker
+  docker push mhj/multi-nginx
