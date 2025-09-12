@@ -43,12 +43,12 @@ jobs:
     
     - name: Push images to registry
       run: |
-        docker tag mhj/multi-client crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-client
-        docker tag mhj/multi-server crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-server
-        docker tag mhj/multi-worker crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-worker
-        docker tag mhj/multi-nginx crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-nginx
+        docker tag mhj/multi-client crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-client
+        docker tag mhj/multi-server crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-server
+        docker tag mhj/multi-worker crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-worker
+        docker tag mhj/multi-nginx crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-nginx
 
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-client
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-server
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-worker
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/mhj/multi-nginx
+        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-client
+        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-server
+        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-worker
+        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj/multi-nginx
