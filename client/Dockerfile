@@ -1,4 +1,3 @@
-vi Dockerfile.dev
 FROM node:alpine
 WORKDIR '/app'
 COPY ./package.json ./
