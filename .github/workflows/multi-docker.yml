@@ -38,12 +38,9 @@ jobs:
         docker build -t mhj/multi-worker ./worker
 
     - name: Login to Aliyun Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com
-        username: ${{ secrets.DOCKER_ID }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_ID }} crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com --password-stdin
+    
     - name: Push images to registry
       run: |
         docker push mhj/multi-client
