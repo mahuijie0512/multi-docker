@@ -1,60 +1,14 @@
 version: '3'
 services:
-  postgres:
-    image: 'postgres:latest'
-    environment:
-      - POSTGRES_PASSWORD=postgres_password
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=postgres
-  redis:
-    image: 'redis:latest'
-  nginx:
-    restart: always
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./nginx
-    ports:
-      - '3050:80'
-  api:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./server
-    volumes:
-      - /app/node_modules
-      - ./server:/app
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - PGUSER=postgres
-      - PGHOST=postgres
-      - PGDATABASE=postgres
-      - PGPORT=5432
-      - PGPASSWORD=postgres_password
   client:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./client
-    volumes:
-      - /app/node_modules
-      - ./client:/app
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_HOST=127.0.0.1
-      - HOST=0.0.0.0
     image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-client
-
+    
   server:
     image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-server
-
+    
   worker:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ./worker
-    volumes:
-      - /app/node_modules
-      - ./worker:/app 
     image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-worker
-
+    
   nginx:
     image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-nginx
     ports:
