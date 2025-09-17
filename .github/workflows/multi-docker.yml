@@ -20,8 +20,13 @@ jobs:
     - name: Build development image
       run: docker build -t mhj/react-test -f ./client/Dockerfile.dev ./client
 
+    - name: Run tests
+      run: docker run mhj/react-test npm test -- --coverage
+
   deploy:
     runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
     - name: Checkout code
@@ -37,36 +42,76 @@ jobs:
         docker build -t mhj-multi-server ./server
         docker build -t mhj-multi-worker ./worker
 
-    - name: Login to Aliyun Container Registry
-      run: |
-        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com --password-stdin
-    
-    - name: Push images to registry
-      run: |
-        docker tag mhj-multi-client crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-client
-        docker tag mhj-multi-server crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-server
-        docker tag mhj-multi-worker crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-worker
-        docker tag mhj-multi-nginx crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-nginx
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: ap-northeast-1
 
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-client
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-server
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-worker
-        docker push crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-nginx
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Create ECR repositories if they don't exist
+      run: |
+        aws ecr describe-repositories --repository-names multi-docker-client || aws ecr create-repository --repository-name multi-docker-client
+        aws ecr describe-repositories --repository-names multi-docker-server || aws ecr create-repository --repository-name multi-docker-server
+        aws ecr describe-repositories --repository-names multi-docker-worker || aws ecr create-repository --repository-name multi-docker-worker
+        aws ecr describe-repositories --repository-names multi-docker-nginx || aws ecr create-repository --repository-name multi-docker-nginx
+
+    - name: Push images to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker tag mhj-multi-client $ECR_REGISTRY/multi-docker-client:latest
+        docker tag mhj-multi-server $ECR_REGISTRY/multi-docker-server:latest
+        docker tag mhj-multi-worker $ECR_REGISTRY/multi-docker-worker:latest
+        docker tag mhj-multi-nginx $ECR_REGISTRY/multi-docker-nginx:latest
+        docker push $ECR_REGISTRY/multi-docker-client:latest
+        docker push $ECR_REGISTRY/multi-docker-server:latest
+        docker push $ECR_REGISTRY/multi-docker-worker:latest
+        docker push $ECR_REGISTRY/multi-docker-nginx:latest
+
+    - name: Generate docker-compose.yml for deployment
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        cat > docker-compose.yml << EOF
+        services:
+          client:
+            image: $ECR_REGISTRY/multi-docker-client:latest
+            
+          server:
+            image: $ECR_REGISTRY/multi-docker-server:latest
+            
+          worker:
+            image: $ECR_REGISTRY/multi-docker-worker:latest
+            
+          nginx:
+            image: $ECR_REGISTRY/multi-docker-nginx:latest
+            ports:
+              - "80:80"
+            depends_on:
+              - client
+              - server
+        EOF
 
     - name: Generate deployment package
       run: |
         zip -r deploy.zip docker-compose.yml
         ls -la deploy.zip
-
+        
     - name: Debug AWS credentials
       run: |
-        echo "AWS Access Key length is: ${#AWS_ACCESS_KEY}"
-        echo "AWS Secret Key length is: ${#AWS_SECRET_KEY}"
+        echo "AWS Access Key length: ${#AWS_ACCESS_KEY}"
+        echo "AWS Secret Key length: ${#AWS_SECRET_KEY}"
       env:
         AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
         AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 
     - name: Deploy to AWS Elastic Beanstalk
+      id: deploy
       uses: einaregilsson/beanstalk-deploy@v22
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
@@ -76,4 +121,15 @@ jobs:
         version_label: ${{ github.sha }}
         region: ap-northeast-1
         deployment_package: deploy.zip
-        wait_for_deployment: false
+        wait_for_deployment: true
+        wait_for_environment_recovery: 300
+
+    - name: Get deployment logs on failure
+      if: failure()
+      run: |
+        pip install awsebcli
+        eb init multi-docker --region ap-northeast-1 --platform docker
+        eb logs Multi-docker-env --all
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
