@@ -1,0 +1,36 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+        {
+            "name": "client",
+            "image": "crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-client",
+            "hostname": "client",
+            "essential": false
+        },
+        {
+            "name": "server",
+            "image": "crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-server",
+            "hostname": "api",
+            "essential": false
+        },
+        {
+            "name": "worker",
+            "image": "crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-worker",
+            "hostname": "worker",
+            "essential": false
+        },
+        {
+            "name": "nginx",
+            "image": "crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-nginx",
+            "hostname": "nginx",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": ["client", "server"]
+        }
+    ]
+}
