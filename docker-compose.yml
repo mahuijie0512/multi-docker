@@ -1,3 +1,4 @@
+version: '3'
 services:
   postgres:
     image: 'postgres:latest'
@@ -40,6 +41,11 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_HOST=127.0.0.1
       - HOST=0.0.0.0
+    image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-client
+
+  server:
+    image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-server
+
   worker:
     build:
       dockerfile: Dockerfile.dev
@@ -47,3 +53,12 @@ services:
     volumes:
       - /app/node_modules
       - ./worker:/app 
+    image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-worker
+
+  nginx:
+    image: crpi-pj4m4jq6uloanq7g.cn-beijing.personal.cr.aliyuncs.com/multi-docker/multi-docker:mhj-multi-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - client
+      - server

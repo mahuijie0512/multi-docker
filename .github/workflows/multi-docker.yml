@@ -55,7 +55,7 @@ jobs:
 
     - name: Generate deployment package
       run: |
-        zip -r deploy.zip Dockerrun.aws.json
+        zip -r deploy.zip docker-compose.yml
         ls -la deploy.zip
 
     - name: Debug AWS credentials
