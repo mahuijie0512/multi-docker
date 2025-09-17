@@ -20,9 +20,12 @@ jobs:
     - name: Build development image
       run: docker build -t mhj/react-test -f ./client/Dockerfile.dev ./client
 
+    - name: Run tests
+      run: docker run mhj/react-test npm test -- --coverage --watchAll=false
 
   deploy:
     runs-on: ubuntu-latest
+    needs: test
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
