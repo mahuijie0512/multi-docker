@@ -60,8 +60,8 @@ jobs:
 
     - name: Debug AWS credentials
       run: |
-        echo "AWS Access Key length: ${#AWS_ACCESS_KEY}"
-        echo "AWS Secret Key length: ${#AWS_SECRET_KEY}"
+        echo "AWS Access Key length is: ${#AWS_ACCESS_KEY}"
+        echo "AWS Secret Key length is: ${#AWS_SECRET_KEY}"
       env:
         AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
         AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
