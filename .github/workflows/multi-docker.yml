@@ -21,7 +21,7 @@ jobs:
       run: docker build -t mhj/react-test -f ./client/Dockerfile.dev ./client
 
     - name: Run tests
-      run: docker run mhj/react-test npm test -- --coverage
+      run: docker run mhj/react-test npm test -- --coverag --watchAll=false
 
   deploy:
     runs-on: ubuntu-latest
