@@ -56,6 +56,15 @@ jobs:
     - name: Generate deployment package
       run: |
         zip -r deploy.zip Dockerrun.aws.json
+        ls -la deploy.zip
+
+    - name: Debug AWS credentials
+      run: |
+        echo "AWS Access Key length: ${#AWS_ACCESS_KEY}"
+        echo "AWS Secret Key length: ${#AWS_SECRET_KEY}"
+      env:
+        AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
 
     - name: Deploy to AWS Elastic Beanstalk
       uses: einaregilsson/beanstalk-deploy@v22
@@ -67,3 +76,4 @@ jobs:
         version_label: ${{ github.sha }}
         region: ap-northeast-1
         deployment_package: deploy.zip
+        wait_for_deployment: false
